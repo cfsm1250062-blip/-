@@ -1,7 +1,6 @@
 # -enetokuについて
 コレはekotokuのやつです。
 
-//全体構成
 [スマホアプリ]
   └ 写真撮影・アップロード
         ↓
@@ -12,7 +11,6 @@
         ↓
 [節約アドバイスを返す]
 
-//バックエンド基本構造
 backend/
 ├ main.py
 ├ ocr.py
@@ -39,7 +37,6 @@ async def upload_bill(file: UploadFile = File(...)):
         "advice": advice
     }
 
-//OCR処理（ocr.py）
 import pytesseract
 from PIL import Image
 import io
@@ -63,7 +60,6 @@ def extract_bill_data(image_bytes: bytes):
         "usage": usage
     }
 
-//AI分析ロジック（analyzer.py）
 def analyze_usage(bill_data):
     advice = []
 
@@ -86,7 +82,6 @@ def analyze_usage(bill_data):
 
     return advice
 
-//データモデル（models.py：任意）
 import sqlite3
 
 def save_bill(amount, usage):
