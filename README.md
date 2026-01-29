@@ -1,76 +1,104 @@
 # -enetokuについて
 コレはekotokuのやつです。
 
-//データ例(OCR後)
-{
-  "type": "electricity",
-  "month": "2025-01",
-  "usage_kwh": 320,
-  "price_yen": 9800
-}
+//全体構成
+[スマホアプリ]
+  └ 写真撮影・アップロード
+        ↓
+[Backend API (FastAPI)]
+  ├ OCR（請求額・使用量を抽出）
+  ├ データ保存
+  └ AI分析ロジック
+        ↓
+[節約アドバイスを返す]
 
-//Pythonバックエンド（FastAPI例）
-pip install fastapi uvicorn pillow pytesseract pandas
+//バックエンド基本構造
+backend/
+├ main.py
+├ ocr.py
+├ analyzer.py
+├ models.py
+└ bills.db
 
-//OCR処理
-from PIL import Image
-import pytesseract
-
-def extract_text_from_image(image_path: str) -> str:
-    img = Image.open(image_path)
-    text = pytesseract.image_to_string(img, lang="jpn")
-    return text
-
-    金額・使用量の抽出（超シンプル版）
-    import re
-
-def parse_bill(text: str):
-    price = re.search(r'([0-9,]+)円', text)
-    usage = re.search(r'([0-9]+)kWh', text)
-
-    return {
-        "price_yen": int(price.group(1).replace(",", "")) if price else None,
-        "usage_kwh": int(usage.group(1)) if usage else None
-    }
-
-//節約アドバイスAI（ルールベース）
-def generate_advice(current, past_average):
-    advice = []
-
-    if current["usage_kwh"] > past_average["usage_kwh"] * 1.1:
-        advice.append("電力使用量が平均より多めです。エアコンの設定温度を1℃見直してみましょう。")
-
-    if current["price_yen"] > past_average["price_yen"]:
-        advice.append("料金が上昇しています。電力会社のプラン見直しがおすすめです。")
-
-    if not advice:
-        advice.append("今月は順調です。この調子をキープしましょう！")
-
-    return advice
-
-//FastAPIエンドポイント
-from fastapi import FastAPI, UploadFile
-import shutil
+//FastAPI（main.py）
+from fastapi import FastAPI, File, UploadFile
+from ocr import extract_bill_data
+from analyzer import analyze_usage
 
 app = FastAPI()
 
-@app.post("/analyze")
-async def analyze_bill(file: UploadFile):
-    path = f"tmp/{file.filename}"
-    with open(path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+@app.post("/upload")
+async def upload_bill(file: UploadFile = File(...)):
+    image_bytes = await file.read()
 
-    text = extract_text_from_image(path)
-    bill = parse_bill(text)
-
-    past_average = {
-        "usage_kwh": 280,
-        "price_yen": 8500
-    }
-
-    advice = generate_advice(bill, past_average)
+    bill_data = extract_bill_data(image_bytes)
+    advice = analyze_usage(bill_data)
 
     return {
-        "bill": bill,
+        "bill_data": bill_data,
         "advice": advice
     }
+
+//OCR処理（ocr.py）
+import pytesseract
+from PIL import Image
+import io
+import re
+
+def extract_bill_data(image_bytes: bytes):
+    image = Image.open(io.BytesIO(image_bytes))
+    text = pytesseract.image_to_string(image, lang="jpn")
+
+    # 金額抽出（例：¥3,245）
+    amount_match = re.search(r'([0-9,]+)\s*円', text)
+    amount = int(amount_match.group(1).replace(",", "")) if amount_match else None
+
+    # 使用量抽出（例：123kWh / 15㎥）
+    usage_match = re.search(r'([0-9]+)\s*(kWh|㎥)', text)
+    usage = int(usage_match.group(1)) if usage_match else None
+
+    return {
+        "raw_text": text,
+        "amount_yen": amount,
+        "usage": usage
+    }
+
+//AI分析ロジック（analyzer.py）
+def analyze_usage(bill_data):
+    advice = []
+
+    amount = bill_data.get("amount_yen")
+    usage = bill_data.get("usage")
+
+    if amount is None:
+        return ["請求金額を読み取れませんでした。"]
+
+    if amount > 8000:
+        advice.append("先月より使用量が多い可能性があります。")
+
+    if usage:
+        if usage > 300:
+            advice.append("使用量が多めです。夜間電力や節水シャワーを検討してみてください。")
+        else:
+            advice.append("使用量は平均的です。この調子を維持しましょう。")
+
+    advice.append("家電の待機電力を減らすと月5〜10%節約できる可能性があります。")
+
+    return advice
+
+//データモデル（models.py：任意）
+import sqlite3
+
+def save_bill(amount, usage):
+    conn = sqlite3.connect("bills.db")
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS bills (
+            id INTEGER PRIMARY KEY,
+            amount INTEGER,
+            usage INTEGER
+        )
+    """)
+    cur.execute("INSERT INTO bills (amount, usage) VALUES (?, ?)", (amount, usage))
+    conn.commit()
+    conn.close()
