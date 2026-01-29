@@ -1,2 +1,2 @@
-# -ekotokuについて
+# -enetokuについて
 コレはekotokuのやつです。
