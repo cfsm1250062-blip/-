@@ -1,5 +1,5 @@
 # -enetokuについて
-コレはekotokuのやつです。
+コレはenetokuのやつです。
 
 //データモデル例
 class UtilityBill:
