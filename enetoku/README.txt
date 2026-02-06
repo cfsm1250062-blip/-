@@ -13,8 +13,9 @@ root/
  
  〇〇.phpをserverのルートにおいて、PHPmyadminの方でデータベースを作ってね。
 
-SQL文だよ:
+テーブル名をuser_loginで制作して、以下のSQLを入力してください。
 
+SQL文だよ:
 CREATE TABLE users (
     id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(50) NOT NULL UNIQUE,
@@ -29,3 +30,4 @@ ________________________________________________________________________________
 
 
 解説は"PHP+MySQLで簡易ログインシステムを作る"のwebショーカットをおいたからそれを見てね。あとはよろしく。
+
