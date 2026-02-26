@@ -585,3 +585,17 @@ async function exportCsv() {
 </script>
 </body>
 </html>
+async function askGemini(prompt) {
+  const res = await fetch("gemini_api.php", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": CSRF_TOKEN
+    },
+    body: JSON.stringify({ prompt })
+  });
+
+  if (!res.ok) throw new Error("Gemini failed");
+
+  return await res.json();
+}
