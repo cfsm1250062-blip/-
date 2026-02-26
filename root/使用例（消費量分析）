@@ -1,0 +1,21 @@
+async function analyzeUsage() {
+  const items = await loadHistory();
+  if (items.length < 2) {
+    alert("履歴が足りません");
+    return;
+  }
+
+  const readings = items.map(i => i.reading).join(", ");
+
+  const prompt = `
+以下は電力メーターの履歴です：
+${readings}
+
+消費傾向を簡潔に分析してください。
+  `;
+
+  const result = await askGemini(prompt);
+
+  const text = result.candidates?.[0]?.content?.parts?.[0]?.text || "解析失敗";
+  alert(text);
+}
