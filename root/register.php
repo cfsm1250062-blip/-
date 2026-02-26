@@ -36,7 +36,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     if(empty($errors['name'])){
         $sql = "SELECT id FROM users WHERE name = :name";
         $stmt = $pdo->prepare($sql);
-        $stmt->bindValue('name',$datas['name'],PDO::PARAM_INT);
+        $stmt->bindValue('name',$datas['name'],PDO::PARAM_STR);
         $stmt->execute();
         if($row = $stmt->fetch(PDO::FETCH_ASSOC)){
             $errors['name'] = 'This username is already taken.';
@@ -127,3 +127,4 @@ if($_SERVER["REQUEST_METHOD"] == "POST"){
     </div>    
 </body>
 </html>
+
