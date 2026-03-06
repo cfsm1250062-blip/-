@@ -63,6 +63,23 @@ async function api(action, data = null, method = 'POST') {
   return res.json();
 }
 
+// GETリクエスト用ヘルパー（クエリパラメータ付きでデータ取得）
+async function apiGet(action, params = {}) {
+  let url = 'api.php?action=' + action;
+  for (const [key, val] of Object.entries(params)) {
+    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(val);
+  }
+  try {
+    const res = await fetch(url, {
+      method: 'GET',
+      credentials: 'same-origin',
+    });
+    return res.json();
+  } catch (e) {
+    return { ok: false, error: '通信エラー: ' + e.message };
+  }
+}
+
 // ──────────── 認証 ──────────────────
 async function doLogin() {
   const username = document.getElementById('login-username').value.trim();
@@ -194,7 +211,13 @@ async function loadRecords() {
   // adminは全ユーザーのデータをダッシュボードに集計表示する
   const params = currentUser?.is_admin ? { all: '1' } : {};
   const res = await apiGet('records', params);
-  if (res.ok) allRecords = res.records;
+  if (res.ok) {
+    allRecords = res.records;
+    // 記録一覧ページが表示中であればテーブルも更新する
+    if (document.getElementById('page-records')?.classList.contains('active')) {
+      loadRecordsTable();
+    }
+  }
 }
 
 // ──────────── ダッシュボード ──────────────────

@@ -181,14 +181,14 @@ $currentUser = getCurrentUser();
         <div class="page-header">
           <h1>記録一覧</h1>
           <div class="header-actions">
-            <select id="filter-type" onchange="loadRecords()" class="filter-select">
+            <select id="filter-type" onchange="loadRecordsTable()" class="filter-select">
               <option value="">すべての種別</option>
               <option value="water">水道</option>
               <option value="electricity">電気</option>
               <option value="gas">ガス</option>
               <option value="other">その他</option>
             </select>
-            <select id="filter-year" onchange="loadRecords()" class="filter-select">
+            <select id="filter-year" onchange="loadRecordsTable()" class="filter-select">
               <option value="">すべての年</option>
             </select>
           </div>
