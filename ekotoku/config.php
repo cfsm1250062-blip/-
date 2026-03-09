@@ -21,7 +21,7 @@ define('ALLOWED_TYPES', ['image/jpeg', 'image/png', 'image/gif', 'image/webp', '
 // ──────────────────────────────────────────
 // Google Gemini API 設定
 // ──────────────────────────────────────────
-define('GEMINI_API_KEY', 'AIzaSyCS-YZsJR1Y_qs4XCSslban2RB-dYRl6Q0'); 
+define('GEMINI_API_KEY', 'ENTER YOUR API KEY HERE!'); 
 define('GEMINI_MODEL', 'gemini-3-flash-preview'); // 利用するモデルを指定
 
 // アプリ設定
